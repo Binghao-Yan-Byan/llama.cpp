@@ -10708,6 +10708,7 @@ static struct ggml_tensor * llm_build_rwkv6_channel_mix(
     return ggml_mul(ctx, r, llm_build_lora_mm(lctx, ctx, layer->channel_mix_value, k));
 }
 
+bool YBH_TEST=false;
 struct llm_build_context {
     const llama_model    & model;
           llama_context  & lctx;
@@ -11301,7 +11302,11 @@ struct llm_build_context {
         cb(cur, "result_output", -1);
 
         ggml_build_forward_expand(gf, cur);
-
+        if(!YBH_TEST){
+            YBH_TEST = true;
+            ggml_graph_print(gf);
+            ggml_graph_dump_dot(gf, NULL, "debug.dot");
+        }
         return gf;
     }
 

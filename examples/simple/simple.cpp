@@ -84,7 +84,7 @@ int main(int argc, char ** argv) {
     model_params.n_gpu_layers = ngl;
 
     llama_model * model = llama_model_load_from_file(model_path.c_str(), model_params);
-
+ 
     if (model == NULL) {
         fprintf(stderr , "%s: error: unable to load model\n" , __func__);
         return 1;

@@ -122,7 +122,6 @@ static int llama_model_load(const std::string & fname, std::vector<std::string> 
             LLAMA_LOG_INFO("%s: vocab only - skipping tensors\n", __func__);
             return 0;
         }
-
         if (!model.load_tensors(ml)) {
             return -2;
         }
@@ -217,8 +216,9 @@ static struct llama_model * llama_model_load_from_file_impl(
         ggml_backend_dev_memory(dev, &free, &total);
         LLAMA_LOG_INFO("%s: using device %s (%s) - %zu MiB free\n", __func__, ggml_backend_dev_name(dev), ggml_backend_dev_description(dev), free/1024/1024);
     }
-
+ 
     const int status = llama_model_load(path_model, splits, *model, params);
+
     GGML_ASSERT(status <= 0);
     if (status < 0) {
         if (status == -1) {

@@ -24,7 +24,52 @@
 #include <windows.h>
 #include <signal.h>
 #endif
+/*
+// used for calculate the statistic of the computation graph
+struct callback_data{
+    std::vector<uint8_t> data;
+};
 
+static std::string ggml_ne_string(const ggml_tensor * t){
+    std::string str;
+    for(int i = 0; i < GGML_MAX_DIMS; ++i){
+        str += std::to_string(t->ne[i]);
+        if (i+1 < GGML_MAX_DIMS){
+            str += ", ";
+        }
+    }
+    return str;
+}
+
+static bool ggml_debug(struct ggml_tensor *t, bool ask, void * user_data){
+    auto * cb_data = (callback_data *) user_data;
+
+    const struct ggml_tensor * src0 = t->src[0];
+    const struct ggml_tensor * src1 = t->src[1];
+    
+    if(ask){
+        return true;
+    }
+
+    char src1_str[128] = {0};
+    if(src1){
+        snprintf(src1_str, sizeof(src1_str), "%s{%s}", src1->name, ggml_ne_string(src1).c_str());
+    }
+
+    // copy the data from the GPU memory if needed
+    const bool is_host = ggml_backend_buffer_is_host(t->buffer);
+
+
+    LOG("%s: %24s = (%s) %10s(%s{%s}, %s}) = {%s}\n", is_host?"CPU":"GPU",
+         t->name, ggml_type_name(t->type), ggml_op_desc(t),
+         src0->name, ggml_ne_string(src0).c_str(),
+         src1 ? src1_str : "",
+         ggml_ne_string(t).c_str());
+
+    return true;
+}
+
+*/
 // volatile, because of signal being an interrupt
 static volatile bool g_is_generating = false;
 static volatile bool g_is_interrupted = false;
@@ -257,6 +302,11 @@ int main(int argc, char ** argv) {
 
     common_init();
 
+
+    // callback_data cb_data;
+    // params.cb_eval = ggml_debug;
+    // params.cb_eval_user_data = &cb_data;
+    
     if (params.mmproj.path.empty()) {
         show_additional_info(argc, argv);
         LOG_ERR("ERR: Missing --mmproj argument\n");

@@ -24,6 +24,7 @@
 #include <regex>
 #include <sstream>
 #include <stdexcept>
+#include <stdio.h>
 
 const char * llm_type_name(llm_type type) {
     switch (type) {
@@ -5273,7 +5274,7 @@ bool llama_model::load_tensors(llama_model_loader & ml) {
             tensors_by_name.emplace_back(ggml_get_name(cur), cur);
         }
     }
-
+    
     // load tensor data
     for (auto & it : ctx_bufs) {
         ggml_context * ctx = it.first;
@@ -5282,6 +5283,21 @@ bool llama_model::load_tensors(llama_model_loader & ml) {
             return false;
         }
     }
+
+    // through ctx_bufs ctx's tensor's data to check where this tensor is
+    // #################
+
+    const char *filename = "llama_model_status.txt";
+    FILE *fp = fopen(filename, "w");
+    if(fp != NULL){
+        for (auto & it : ctx_bufs){
+            ggml_context *ctx = it.first;
+            for(auto * cur = ggml_get_first_tensor(ctx); cur != NULL; cur = ggml_get_next_tensor(ctx, cur)){
+                fprintf(fp, "tensor %s ON %s\n", cur->name, cur->buffer==NULL? "NULL":ggml_backend_buffer_name(cur->buffer));
+            }
+        }
+    }
+    fclose(fp);   
 
     if (use_mmap_buffer) {
         for (auto & mapping : ml.mappings) {

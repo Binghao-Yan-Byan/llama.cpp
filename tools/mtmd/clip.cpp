@@ -2588,6 +2588,16 @@ struct clip_model_loader {
             fin.close();
 
             LOG_DBG("%s: loaded %zu tensors from %s\n", __func__, tensors_to_load.size(), fname.c_str());
+            //########################
+            const char *filename = "clip_model_status.txt";
+            FILE *fp = fopen(filename, "w");
+            if(fp != NULL){
+                ggml_context *ctx = ctx_clip.ctx_data.get();
+                for(auto * cur = ggml_get_first_tensor(ctx); cur != NULL; cur = ggml_get_next_tensor(ctx, cur)){
+                    fprintf(fp, "tensor %s ON %s\n", cur->name, cur->buffer==NULL? "NULL":ggml_backend_buffer_name(cur->buffer));
+                }
+            }
+            fclose(fp); 
         }
     }
 

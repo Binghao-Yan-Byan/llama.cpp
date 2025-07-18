@@ -1846,10 +1846,22 @@ bool llama_model::load_tensors(llama_model_loader & ml) {
     for (int il = 0; il < n_layer; ++il) {
         pimpl->dev_layer[il] = get_layer_buft_list(il);
     }
-
     // assign the output layer
     pimpl->dev_output = get_layer_buft_list(n_layer);
 
+    // ################################ input + layer + output
+    {
+        char *filename = "llama_model_load_tensor_layers_split_dev.txt";
+        FILE *fp = fopen(filename, "w");
+        if(fp != NULL){
+            fprintf(fp, "Input layers: %s\n", ggml_backend_dev_name(pimpl->dev_input.dev));
+            for(int i = 0; i < n_layer; ++i){
+                fprintf(fp, "Model layer %d: %s\n", i, ggml_backend_dev_name(pimpl->dev_layer[i].dev));
+            }
+            fprintf(fp, "Output layers: %s\n", ggml_backend_dev_name(pimpl->dev_output.dev));
+        }
+        fclose(fp);
+    }
     // one ggml context per buffer type
     int max_n_tensors = ml.n_tensors;
     max_n_tensors += 1;         // duplicated output tensor
@@ -5286,19 +5298,19 @@ bool llama_model::load_tensors(llama_model_loader & ml) {
 
     // through ctx_bufs ctx's tensor's data to check where this tensor is
     // #################
-
-    const char *filename = "llama_model_status.txt";
-    FILE *fp = fopen(filename, "w");
-    if(fp != NULL){
-        for (auto & it : ctx_bufs){
-            ggml_context *ctx = it.first;
-            for(auto * cur = ggml_get_first_tensor(ctx); cur != NULL; cur = ggml_get_next_tensor(ctx, cur)){
-                fprintf(fp, "tensor %s ON %s\n", cur->name, cur->buffer==NULL? "NULL":ggml_backend_buffer_name(cur->buffer));
+    {
+        const char *filename = "llama_model_status.txt";
+        FILE *fp = fopen(filename, "w");
+        if(fp != NULL){
+            for (auto & it : ctx_bufs){
+                ggml_context *ctx = it.first;
+                for(auto * cur = ggml_get_first_tensor(ctx); cur != NULL; cur = ggml_get_next_tensor(ctx, cur)){
+                    fprintf(fp, "tensor %s ON %s\n", cur->name, cur->buffer==NULL? "NULL":ggml_backend_buffer_name(cur->buffer));
+                }
             }
         }
+        fclose(fp);   
     }
-    fclose(fp);   
-
     if (use_mmap_buffer) {
         for (auto & mapping : ml.mappings) {
             pimpl->mappings.emplace_back(std::move(mapping));

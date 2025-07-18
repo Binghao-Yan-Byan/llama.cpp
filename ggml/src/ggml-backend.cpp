@@ -1360,7 +1360,23 @@ static bool ggml_backend_sched_alloc_splits(ggml_backend_sched_t sched) {
 
 static enum ggml_status ggml_backend_sched_compute_splits(ggml_backend_sched_t sched) {
     struct ggml_backend_sched_split * splits = sched->splits;
-
+    // ######################print schedule graph
+    {
+        const char *filename = "llama_schedule_splits.txt";
+        FILE * fp = fopen(filename, "a+");
+        if(fp != NULL){
+            for (int i = 0; i < sched->n_splits; i++) {
+                struct ggml_backend_sched_split * split = &splits[i];
+                int split_backend_id = split->backend_id;
+                ggml_backend_t split_backend = sched->backends[split_backend_id];
+                time_t now = time(NULL);
+                struct tm *local = localtime(&now);
+                fprintf(fp, "slpit %d works on %s\n at %s", i, ggml_backend_name(split_backend), asctime(local));
+            }
+            fprintf(fp, "\n\n");
+        }   
+        fclose(fp);
+    }   
     for (int i = 0; i < sched->n_splits; i++) {
         struct ggml_backend_sched_split * split = &splits[i];
         int split_backend_id = split->backend_id;

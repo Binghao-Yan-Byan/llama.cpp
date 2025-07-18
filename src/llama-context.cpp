@@ -141,6 +141,20 @@ llama_context::llama_context(
                 __func__, cparams.n_seq_max, "https://github.com/ggml-org/llama.cpp/pull/13845#issuecomment-2924800573");
     }
 
+    // ####################################
+    // check the model devices list
+    {
+        const char *filename = "llama_ctx_info.txt"; 
+        FILE *fp = fopen(filename, "w");
+        if(fp != NULL){
+            for(auto & dev : model.devices){
+                fprintf(fp, "models's device %s\n", ggml_backend_dev_name(dev));
+            }
+            fprintf(fp, "!hparams.vocab_only = %d\n", !hparams.vocab_only);
+        }
+        fclose(fp);   
+    }   
+
     if (!hparams.vocab_only) {
         // GPU backends
         for (auto * dev : model.devices) {
@@ -268,7 +282,21 @@ llama_context::llama_context(
                 }
             }
         }
-
+        // ####################################
+        // check the model buft
+        {
+            const char *filename = "llama_ctx_info.txt"; 
+            FILE *fp = fopen(filename, "a+");
+            if(fp != NULL){
+                for(auto & bkn: backends){
+                    fprintf(fp, "models's backend: %s\n", ggml_backend_name(bkn.get()));
+                }
+                for(auto & buft : backend_buft){
+                    fprintf(fp, "models's buffer_type: %s\n", ggml_backend_buft_name(buft));
+                }
+            }
+            fclose(fp);   
+        } 
         sched.reset(ggml_backend_sched_new(backend_ptrs.data(), backend_buft.data(), backend_ptrs.size(), max_nodes, pipeline_parallel, cparams.op_offload));
 
         if (pipeline_parallel) {

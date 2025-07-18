@@ -1223,7 +1223,20 @@ static std::string list_builtin_chat_templates() {
 common_params_context common_params_parser_init(common_params & params, llama_example ex, void(*print_usage)(int, char **)) {
     // load dynamic backends
     ggml_backend_load_all();
-
+    // #######################################
+    {
+        char * filename = "registered_devices.txt";
+        FILE *fp = fopen(filename, "w");
+        if(fp != NULL){
+            size_t dev_count = ggml_backend_dev_count();
+            fprintf(fp, "%d devices registered.\n", dev_count);
+            for(size_t i = 0; i < dev_count; i ++){
+                ggml_backend_dev_t dev = ggml_backend_dev_get(i);
+                fprintf(fp, "devices %d = %s\n", i, ggml_backend_dev_name(dev));
+            }
+        }
+        fclose(fp);   
+    }
     common_params_context ctx_arg(params);
     ctx_arg.print_usage = print_usage;
     ctx_arg.ex          = ex;

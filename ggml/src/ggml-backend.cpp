@@ -1356,9 +1356,8 @@ static enum ggml_status ggml_backend_sched_compute_splits(ggml_backend_sched_t s
                 ggml_backend_t split_backend = sched->backends[split_backend_id];
                 time_t now = time(NULL);
                 struct tm *local = localtime(&now);
-                fprintf(fp, "slpit %d works on %s\n at %s", i, ggml_backend_name(split_backend), asctime(local));
+                fprintf(fp, "slpit %d works on %s at %s", i, ggml_backend_name(split_backend), asctime(local));
             }
-            fprintf(fp, "\n\n");
         }   
         fclose(fp);
     }   
@@ -1450,7 +1449,17 @@ static enum ggml_status ggml_backend_sched_compute_splits(ggml_backend_sched_t s
     }
 
     sched->cur_copy = (sched->cur_copy + 1) % sched->n_copies;
-
+    {
+        const char *filename = "llama_schedule_splits.txt";
+        FILE * fp = fopen(filename, "a+");
+        if(fp != NULL){
+            time_t now = time(NULL);
+            struct tm *local = localtime(&now);
+            fprintf(fp, " ends at %s\n", asctime(local));
+            fprintf(fp, "\n\n");
+        }   
+        fclose(fp);
+    }
     return GGML_STATUS_SUCCESS;
 }
 
